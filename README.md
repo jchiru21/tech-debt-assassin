@@ -1,6 +1,6 @@
 # TechDebtAssassin
 
-[![CI](https://github.com/jchiru21/tech-debt-assassin/actions/workflows/ci.yml/badge.svg)](https://github.com/jchiru21/tech-debt-assassin/actions/workflows/ci.yml)
+[![CI](https://github.com/jchiru21/tech-debt-assassin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jchiru21/tech-debt-assassin/actions/workflows/ci.yml)
 
 An autonomous AI agent that hunts down legacy Python code, injects missing type hints, and writes unit tests -- so you don't have to.
 
