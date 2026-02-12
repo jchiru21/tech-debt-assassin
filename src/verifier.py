@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import py_compile
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -40,7 +41,11 @@ def run_mypy(source_file: str) -> bool:
 
 def verify_syntax(file_path: Path) -> VerificationResult:
     """Check that a Python file is syntactically valid (compile check)."""
-    pass
+    try:
+        py_compile.compile(str(file_path), doraise=True)
+        return VerificationResult(path=file_path, passed=True, errors=[])
+    except py_compile.PyCompileError as exc:
+        return VerificationResult(path=file_path, passed=False, errors=[str(exc)])
 
 
 def verify_type_hints(file_path: Path) -> VerificationResult:

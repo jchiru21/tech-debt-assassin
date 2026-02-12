@@ -8,7 +8,7 @@ from pathlib import Path
 
 import anthropic
 
-from src.scanner import FunctionInfo, ScanResult
+from src.scanner import FunctionInfo
 
 TYPE_HINT_SYSTEM_PROMPT = (
     "You are a Python expert. Return ONLY the function signature with precise type hints.\n"
@@ -80,7 +80,7 @@ def infer_type_hints(func: FunctionInfo) -> dict[str, str] | None:
     # Strip markdown fences and extract only the def line
     if signature_line.startswith("```"):
         lines = signature_line.splitlines()
-        lines = [l for l in lines if not l.startswith("```")]
+        lines = [line for line in lines if not line.startswith("```")]
         signature_line = lines[0].strip() if lines else signature_line
 
     # If the LLM returned a full function body, keep only the def line

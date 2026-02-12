@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from dotenv import load_dotenv
-load_dotenv()
-
 from pathlib import Path
 from typing import Optional
 
 import typer
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, MofNCompleteColumn
 from rich.table import Table
@@ -16,6 +14,8 @@ from rich.table import Table
 from src.scanner import get_python_files, scan_codebase
 from src.generator import apply_patches, generate_test_suite, generate_type_hint_patch, infer_type_hints
 from src.verifier import run_mypy, run_pytest
+
+load_dotenv()
 
 app = typer.Typer(
     name="tech-debt-assassin",
