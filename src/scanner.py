@@ -146,6 +146,120 @@ def parse_function_signatures(file_path: Path) -> list[FunctionInfo]:
     return results
 
 
+def _build_file_tree(root: Path, py_files: list[Path]) -> str:
+    """Build a textual file-tree representation of the project."""
+    lines: list[str] = [f"{root.name}/"]
+    for f in py_files:
+        rel = f.relative_to(root)
+        depth = len(rel.parts) - 1
+        indent = "  " * depth + ("├── " if f != py_files[-1] else "└── ")
+        lines.append(f"{indent}{rel}")
+    return "\n".join(lines)
+
+
+def _extract_file_summary(file_path: Path) -> str:
+    """Extract class names, function signatures, and docstrings from a .py file."""
+    try:
+        source = file_path.read_text(encoding="utf-8")
+    except Exception:
+        return f"# {file_path.name}: (could not read)\n"
+
+    try:
+        tree = ast.parse(source, filename=str(file_path))
+    except SyntaxError:
+        return f"# {file_path.name}: (syntax error)\n"
+
+    parts: list[str] = []
+    for node in ast.iter_child_nodes(tree):
+        if isinstance(node, ast.ClassDef):
+            parts.append(f"class {node.name}:")
+            docstring = ast.get_docstring(node)
+            if docstring:
+                parts.append(f'    """{docstring}"""')
+            for item in node.body:
+                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    sig = ast.get_source_segment(source, item)
+                    if sig:
+                        def_line = sig.split("\n")[0]
+                        parts.append(f"    {def_line}")
+                    else:
+                        parts.append(f"    def {item.name}(...):")
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            sig = ast.get_source_segment(source, node)
+            if sig:
+                parts.append(sig.split("\n")[0])
+            else:
+                parts.append(f"def {node.name}(...):")
+            docstring = ast.get_docstring(node)
+            if docstring:
+                parts.append(f'    """{docstring}"""')
+
+    return "\n".join(parts) if parts else "# (no classes or functions)"
+
+
+# Token estimate: ~4 chars per token for English text
+_CHARS_PER_TOKEN = 4
+_MAX_CONTEXT_TOKENS = 200_000  # conservative limit for Opus 4.6's 1M window
+_FULL_BODY_TOKEN_BUDGET = 100_000
+
+
+def build_project_context(root_path: str, exclude_dirs: set[str] | None = None) -> str:
+    """Build a global context string describing the entire project structure.
+
+    Includes file tree and per-file summaries (class names, function signatures,
+    docstrings). If the total project source is under 100k tokens, includes full
+    file bodies instead of summaries. Truncates gracefully if too large.
+    """
+    root = Path(root_path).resolve()
+    skip = (_DEFAULT_EXCLUDE_DIRS | (exclude_dirs or set())) | {"tests"}
+    py_files = collect_python_files(root, exclude_dirs=skip)
+
+    if not py_files:
+        return "# Empty project — no Python files found."
+
+    # Check total source size to decide full-body vs summary mode
+    total_chars = 0
+    file_sources: dict[Path, str] = {}
+    for f in py_files:
+        try:
+            src = f.read_text(encoding="utf-8")
+            file_sources[f] = src
+            total_chars += len(src)
+        except Exception:
+            file_sources[f] = ""
+
+    use_full_body = (total_chars // _CHARS_PER_TOKEN) < _FULL_BODY_TOKEN_BUDGET
+
+    # Build the context
+    sections: list[str] = []
+    sections.append("=" * 60)
+    sections.append("PROJECT STRUCTURE")
+    sections.append("=" * 60)
+    sections.append(_build_file_tree(root, py_files))
+    sections.append("")
+
+    sections.append("=" * 60)
+    sections.append("FILE DETAILS")
+    sections.append("=" * 60)
+
+    for f in py_files:
+        rel = f.relative_to(root)
+        sections.append(f"\n--- {rel} ---")
+        if use_full_body:
+            sections.append(file_sources.get(f, "# (could not read)"))
+        else:
+            sections.append(_extract_file_summary(f))
+
+    context = "\n".join(sections)
+
+    # Truncate if exceeding max context budget
+    max_chars = _MAX_CONTEXT_TOKENS * _CHARS_PER_TOKEN
+    if len(context) > max_chars:
+        context = context[:max_chars] + "\n\n... [TRUNCATED — project context exceeded token budget]"
+
+    return context
+
+
 def scan_codebase(
     root: Path,
     exclude_dirs: set[str] | None = None,

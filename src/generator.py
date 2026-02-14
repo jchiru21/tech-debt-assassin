@@ -19,6 +19,20 @@ TYPE_HINT_SYSTEM_PROMPT = (
     "4. Return ONLY the def line. No markdown. No imports."
 )
 
+TYPE_HINT_SYSTEM_PROMPT_WITH_CONTEXT = (
+    "You are a Python expert with access to the entire project context below. "
+    "Use this to ensure type hints are consistent across files "
+    "(e.g., if utils.py defines class User, use User correctly in main.py).\n\n"
+    "Return ONLY the function signature with precise type hints.\n"
+    "CRITICAL RULES:\n"
+    "1. Use Python 3.10+ built-in types (list, dict, tuple) instead of the typing module.\n"
+    "2. Use pipe syntax for Optionals (e.g., 'str | None' instead of 'Optional[str]').\n"
+    "3. Do NOT use typing.List, typing.Dict, or typing.Optional.\n"
+    "4. Return ONLY the def line. No markdown. No imports.\n"
+    "5. Reference types from other project files when appropriate (e.g., custom classes, dataclasses).\n"
+    "6. Be consistent with type patterns used elsewhere in the project."
+)
+
 
 @dataclass
 class TypeHintPatch:
@@ -40,8 +54,13 @@ class TestCase:
 
 # ── Type-hint generation ─────────────────────────────────────────────
 
-def infer_type_hints(func: FunctionInfo) -> dict[str, str] | None:
+def infer_type_hints(
+    func: FunctionInfo, project_context: str | None = None
+) -> dict[str, str] | None:
     """Call the LLM to infer precise type hints for *func*.
+
+    When *project_context* is provided, the LLM uses cross-file awareness
+    to produce consistent, project-aware type annotations.
 
     Returns a mapping of param-name -> type string (plus ``"return"`` key),
     or ``None`` when inference fails.
@@ -61,16 +80,28 @@ def infer_type_hints(func: FunctionInfo) -> dict[str, str] | None:
     if func_source is None:
         return None
 
+    # Build the prompt — with or without global context
+    if project_context:
+        system_prompt = (
+            TYPE_HINT_SYSTEM_PROMPT_WITH_CONTEXT
+            + "\n\n--- PROJECT CONTEXT ---\n"
+            + project_context
+        )
+        model = "claude-opus-4-6"
+    else:
+        system_prompt = TYPE_HINT_SYSTEM_PROMPT
+        model = "claude-sonnet-4-5-20250929"
+
+    user_msg = f"Add type hints to this function from {func.file_path.name}:\n\n{func_source}"
+
     # Ask the LLM for a typed signature
     try:
         client = anthropic.Anthropic()
         response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
+            model=model,
             max_tokens=256,
-            system=TYPE_HINT_SYSTEM_PROMPT,
-            messages=[
-                {"role": "user", "content": f"Add type hints to this function:\n\n{func_source}"},
-            ],
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_msg}],
             temperature=0,
         )
         signature_line = response.content[0].text.strip()

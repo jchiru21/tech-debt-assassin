@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, MofNCompleteColumn
 from rich.table import Table
 
-from src.scanner import get_python_files, scan_codebase
+from src.scanner import build_project_context, get_python_files, scan_codebase
 from src.generator import apply_patches, generate_test_suite, generate_type_hint_patch, infer_type_hints
 from src.verifier import run_mypy, run_pytest
 
@@ -72,6 +72,13 @@ def fix(
         return
 
     exclude_dirs = DEFAULT_EXCLUDE | set(exclude or [])
+
+    # Phase 1: Build global project context for cross-file awareness
+    console.print("[bold cyan]Building global project context...[/bold cyan]")
+    project_context = build_project_context(path, exclude_dirs=exclude_dirs)
+    ctx_tokens = len(project_context) // 4
+    console.print(f"[dim]Project context: ~{ctx_tokens:,} tokens[/dim]\n")
+
     succeeded, failed = 0, 0
     errors: list[tuple[Path, str]] = []
 
@@ -95,7 +102,7 @@ def fix(
                     continue
 
                 for func in at_risk:
-                    hints = infer_type_hints(func)
+                    hints = infer_type_hints(func, project_context=project_context)
                     if hints is None:
                         console.print(
                             f"  [yellow]Skipping '{func.name}' in {file} — could not infer[/yellow]"
@@ -220,6 +227,19 @@ def verify(
     console.print(table)
     console.print()
     _print_summary("Verified", succeeded, failed, errors)
+
+
+@app.command()
+def serve() -> None:
+    """Start the MCP server (stdio transport) for use with Cursor, Claude Desktop, etc."""
+    import sys
+
+    print("Starting TechDebtAssassin MCP Server...", file=sys.stderr)
+    print("Transport: stdio | Tools: scan_project, fix_file", file=sys.stderr)
+
+    from src.mcp_server import run_server
+
+    run_server()
 
 
 def _print_summary(

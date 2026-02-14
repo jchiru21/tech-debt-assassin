@@ -1,21 +1,21 @@
 """Simple math utilities — no type hints anywhere."""
 
 
-def add(a, b):
+def add(a: float, b: float) -> float:
     return a + b
 
 
-def multiply(x, y):
+def multiply(x: float, y: float) -> float:
     return x * y
 
 
-def divide(numerator, denominator):
+def divide(numerator: float, denominator: float) -> float:
     if denominator == 0:
         raise ValueError("Cannot divide by zero")
     return numerator / denominator
 
 
-def factorial(n):
+def factorial(n: int) -> int:
     if n < 0:
         raise ValueError("Negative numbers not allowed")
     if n <= 1:
