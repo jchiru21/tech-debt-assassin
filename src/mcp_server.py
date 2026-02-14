@@ -9,8 +9,6 @@ from mcp.server.fastmcp import FastMCP
 
 from src.scanner import (
     build_project_context,
-    collect_python_files,
-    parse_function_signatures,
     scan_codebase,
 )
 from src.generator import apply_patches, generate_type_hint_patch, infer_type_hints
