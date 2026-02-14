@@ -6,6 +6,8 @@ An autonomous AI agent that hunts down legacy Python code, injects missing type 
 
 Powered by **Claude Opus 4.6** (global project awareness + type inference) and **Claude Sonnet 4.5** (precise test generation).
 
+---
+
 ## What's New (Pro Features)
 
 ### Global Project Awareness (The Brain Upgrade)
@@ -23,6 +25,8 @@ TechDebtAssassin is now available as a **Model Context Protocol (MCP) server**, 
 - Exposes `scan_project` and `fix_file` as MCP tools over stdio transport
 - Auto-detects project root by walking up to find `pyproject.toml`, `setup.py`, or `.git`
 - Returns structured JSON results for easy consumption by AI clients
+
+---
 
 ## Architecture
 
@@ -65,12 +69,12 @@ tech-debt-assassin/
 scan ──> fix (with global context) / gen-tests ──> verify
                                     │
                         ┌───────────┴─────────────┐
-                        │  Claude Opus 4.6 (1M)    │
-                        │  cross-file type hints   │
+                        │   Claude Opus 4.6 (1M)   │
+                        │   cross-file type hints  │
                         └─────────────────────────┘
 ```
 
-1. **Scanner** (`src/scanner.py`) -- Recursively collects `.py` files, parses them with Python's built-in `ast` module, and builds a list of `FunctionInfo` objects for every function/method that is missing type hints. Now also includes `build_project_context()` which generates a global context string containing the file tree structure and per-file summaries (class names, function signatures, docstrings) or full source bodies for smaller projects.
+1. **Scanner** (`src/scanner.py`) -- Recursively collects `.py` files, parses them with Python's built-in `ast` module, and builds a list of `FunctionInfo` objects for every function/method that is missing type hints. Also includes `build_project_context()` which generates a global context string containing the file tree and per-file summaries (class names, function signatures, docstrings) or full source bodies for smaller projects.
 
 2. **Generator** (`src/generator.py`) -- Calls the Anthropic API to produce two kinds of output:
    - **Type-hint patches** -- inferred type annotations applied directly to source files. When project context is provided, uses Claude Opus 4.6 with a cross-file-aware system prompt that ensures type consistency across the entire codebase.
@@ -84,7 +88,9 @@ scan ──> fix (with global context) / gen-tests ──> verify
    - `scan_project(path)` -- scans a file or directory and returns JSON with all functions missing type hints
    - `fix_file(path)` -- applies AI-powered type hint fixes with full project awareness, auto-detecting the project root
 
-### CLI Commands
+---
+
+## CLI Commands
 
 The Assassin supports **Batch Mode** (single file OR directory) and **MCP Server Mode**.
 
@@ -97,6 +103,8 @@ python main.py serve             # Start MCP server (stdio transport)
 ```
 
 > **Note:** Directories like `.git`, `venv`, `node_modules`, and `__pycache__` are automatically excluded. Use `--exclude` to skip others.
+
+---
 
 ## Quick Start
 
@@ -164,6 +172,8 @@ Add this to your `.cursor/mcp.json`:
 
 Once configured, the AI assistant can call `scan_project` and `fix_file` as tools directly within the editor.
 
+---
+
 ## How Global Context Works
 
 When you run `python main.py fix <path>`, the agent:
@@ -173,6 +183,8 @@ When you run `python main.py fix <path>`, the agent:
 3. **Builds the context string** -- a structured text block containing the file tree and per-file details.
 4. **Passes to every LLM call** -- the same context is injected into the system prompt for every `infer_type_hints` call, so the model sees the entire codebase when deciding what types to apply.
 5. **Uses Claude Opus 4.6** -- when project context is available, the agent upgrades from Sonnet to Opus for higher-quality cross-file inference.
+
+---
 
 ## Dependencies
 
@@ -190,6 +202,8 @@ When you run `python main.py fix <path>`, the agent:
 | pytest-cov     | Test coverage (dev)                                      |
 | ruff           | Linter / formatter (dev)                                 |
 
+---
+
 ## Troubleshooting
 
 | Problem                          | Solution                                                       |
@@ -197,10 +211,12 @@ When you run `python main.py fix <path>`, the agent:
 | `ModuleNotFoundError: anthropic` | Run `pip install anthropic` or `pip install -e ".[dev]"`       |
 | `AuthenticationError`            | Check your `.env` file has a valid `ANTHROPIC_API_KEY`         |
 | `404 model not found`            | Ensure you are using a current model ID (Claude 4.5/4.6)      |
-| `ModuleNotFoundError` in tests   | Verify `pythonpath = ["."]` is set in `pyproject.toml`         |
+| `ModuleNotFoundError` in tests   | Verify `pythonpath = ["."]` is set in `pyproject.toml`        |
 | mypy reports `any` type errors   | Use `typing.Any` instead of the builtin `any` in annotations  |
 | `ModuleNotFoundError: mcp`       | Run `pip install mcp` or `pip install -e .`                    |
 | MCP `SyntaxError` in client      | Ensure `serve` command has no stdout prints (uses stderr only) |
+
+---
 
 ## Future Roadmap
 
@@ -210,6 +226,8 @@ When you run `python main.py fix <path>`, the agent:
 - [x] CI/CD integration -- GitHub Actions workflow (ruff lint + pytest on every push/PR)
 - [ ] Confidence scoring -- flag low-confidence type inferences for human review
 - [ ] Multi-language support -- extend scanning beyond Python
+
+---
 
 ## Contributing
 
