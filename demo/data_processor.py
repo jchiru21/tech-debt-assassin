@@ -1,5 +1,7 @@
 """Toy data processing pipeline — zero type annotations."""
 
+from typing import Any
+
 
 def flatten(nested_list: list[Any]) -> list[Any]:
     result = []

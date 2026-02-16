@@ -1,8 +1,14 @@
 """API helper utilities — riddled with missing and broken type hints."""
 
+from __future__ import annotations
+
 import json
 import time
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import aiohttp
 
 
 # 1. Completely untyped — no hints at all
