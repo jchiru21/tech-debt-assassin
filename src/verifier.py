@@ -58,9 +58,6 @@ def verify_tests(test_file: Path) -> VerificationResult:
     pass
 
 
-def verify_all(
-    patches: list[TypeHintPatch],
-    test_cases: list[TestCase],
-) -> list[VerificationResult]:
+def verify_all(patches: list[TypeHintPatch], test_cases: list[TestCase]) -> list[VerificationResult]:
     """Run the full verification pipeline over all generated artefacts."""
     pass

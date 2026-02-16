@@ -1,7 +1,7 @@
 """Toy data processing pipeline — zero type annotations."""
 
 
-def flatten(nested_list):
+def flatten(nested_list: list[Any]) -> list[Any]:
     result = []
     for item in nested_list:
         if isinstance(item, list):
@@ -11,7 +11,7 @@ def flatten(nested_list):
     return result
 
 
-def deduplicate(items):
+def deduplicate(items: list) -> list:
     seen = set()
     out = []
     for item in items:
@@ -21,7 +21,7 @@ def deduplicate(items):
     return out
 
 
-def group_by(records, key):
+def group_by(records: list[dict[str, object]], key: str) -> dict[object, list[dict[str, object]]]:
     groups = {}
     for record in records:
         k = record[key]
@@ -29,7 +29,7 @@ def group_by(records, key):
     return groups
 
 
-def average(numbers):
+def average(numbers: list[float]) -> float:
     if not numbers:
         return 0.0
     return sum(numbers) / len(numbers)

@@ -28,11 +28,7 @@ DEFAULT_EXCLUDE = {"venv", ".venv", "node_modules", "__pycache__", ".git"}
 
 
 @app.command()
-def scan(
-    root: Path = typer.Argument(Path("."), help="Root directory to scan."),
-    exclude: Optional[list[str]] = typer.Option(None, "--exclude", "-e", help="Directories to skip."),
-    force: bool = typer.Option(False, "--force", help="Include functions that already have type hints."),
-) -> None:
+def scan(root: Path, exclude: list[str] | None, force: bool) -> None:
     """Scan the codebase and report functions missing type hints."""
     exclude_dirs = DEFAULT_EXCLUDE | set(exclude or [])
     result = scan_codebase(root, exclude_dirs=exclude_dirs, force=force)
@@ -242,12 +238,7 @@ def serve() -> None:
     run_server()
 
 
-def _print_summary(
-    verb: str,
-    succeeded: int,
-    failed: int,
-    errors: list[tuple[Path, str]],
-) -> None:
+def _print_summary(verb: str, succeeded: int, failed: int, errors: list[tuple[Path, str]]) -> None:
     """Print a coloured summary line after a batch operation."""
     parts: list[str] = []
     if succeeded:

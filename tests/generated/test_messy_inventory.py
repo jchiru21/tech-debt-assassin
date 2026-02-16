@@ -5,7 +5,7 @@ from messy_inventory import process_items, find_item, format_receipt
 class TestProcessItems:
     """Test cases for process_items function"""
     
-    def test_process_items_basic(self):
+    def test_process_items_basic(self) -> None:
         """Test basic calculation with in-stock items"""
         items = [
             {"name": "item1", "price": 10.0, "quantity": 2, "in_stock": True},
@@ -21,7 +21,7 @@ class TestProcessItems:
         ]
         assert process_items(items) == 20.0
     
-    def test_process_items_missing_in_stock_key(self):
+    def test_process_items_missing_in_stock_key(self) -> None:
         """Test items without in_stock key (defaults to False)"""
         items = [
             {"name": "item1", "price": 10.0, "quantity": 2},
@@ -29,11 +29,11 @@ class TestProcessItems:
         ]
         assert process_items(items) == 15.0
     
-    def test_process_items_empty_list(self):
+    def test_process_items_empty_list(self) -> None:
         """Test with empty items list"""
         assert process_items([]) == 0.0
     
-    def test_process_items_all_out_of_stock(self):
+    def test_process_items_all_out_of_stock(self) -> None:
         """Test when all items are out of stock"""
         items = [
             {"name": "item1", "price": 10.0, "quantity": 2, "in_stock": False},
@@ -41,7 +41,7 @@ class TestProcessItems:
         ]
         assert process_items(items) == 0.0
     
-    def test_process_items_zero_quantity(self):
+    def test_process_items_zero_quantity(self) -> None:
         """Test items with zero quantity"""
         items = [
             {"name": "item1", "price": 10.0, "quantity": 0, "in_stock": True},
@@ -49,7 +49,7 @@ class TestProcessItems:
         ]
         assert process_items(items) == 15.0
     
-    def test_process_items_zero_price(self):
+    def test_process_items_zero_price(self) -> None:
         """Test items with zero price"""
         items = [
             {"name": "item1", "price": 0.0, "quantity": 2, "in_stock": True},
@@ -57,7 +57,7 @@ class TestProcessItems:
         ]
         assert process_items(items) == 15.0
     
-    def test_process_items_float_values(self):
+    def test_process_items_float_values(self) -> None:
         """Test with decimal price and quantity values"""
         items = [
             {"name": "item1", "price": 10.99, "quantity": 2, "in_stock": True},
@@ -65,7 +65,7 @@ class TestProcessItems:
         ]
         assert process_items(items) == pytest.approx(27.48)
     
-    def test_process_items_negative_price(self):
+    def test_process_items_negative_price(self) -> None:
         """Test with negative price (edge case - refund scenario)"""
         items = [
             {"name": "item1", "price": -10.0, "quantity": 1, "in_stock": True},
@@ -73,14 +73,14 @@ class TestProcessItems:
         ]
         assert process_items(items) == 5.0
     
-    def test_process_items_large_numbers(self):
+    def test_process_items_large_numbers(self) -> None:
         """Test with large price and quantity values"""
         items = [
             {"name": "item1", "price": 999999.99, "quantity": 100, "in_stock": True}
         ]
         assert process_items(items) == pytest.approx(99999999.0)
     
-    def test_process_items_missing_price_key(self):
+    def test_process_items_missing_price_key(self) -> None:
         """Test that KeyError is raised when price is missing"""
         items = [
             {"name": "item1", "quantity": 2, "in_stock": True}
@@ -88,7 +88,7 @@ class TestProcessItems:
         with pytest.raises(KeyError):
             process_items(items)
     
-    def test_process_items_missing_quantity_key(self):
+    def test_process_items_missing_quantity_key(self) -> None:
         """Test that KeyError is raised when quantity is missing"""
         items = [
             {"name": "item1", "price": 10.0, "in_stock": True}
@@ -96,14 +96,14 @@ class TestProcessItems:
         with pytest.raises(KeyError):
             process_items(items)
     
-    def test_process_items_in_stock_false_string(self):
+    def test_process_items_in_stock_false_string(self) -> None:
         """Test with in_stock as False (boolean)"""
         items = [
             {"name": "item1", "price": 10.0, "quantity": 2, "in_stock": False}
         ]
         assert process_items(items) == 0.0
     
-    def test_process_items_in_stock_truthy_values(self):
+    def test_process_items_in_stock_truthy_values(self) -> None:
         """Test with various truthy values for in_stock"""
         items = [
             {"name": "item1", "price": 10.0, "quantity": 2, "in_stock": 1},
@@ -115,7 +115,7 @@ class TestProcessItems:
 class TestFindItem:
     """Test cases for find_item function"""
     
-    def test_find_item_exists(self):
+    def test_find_item_exists(self) -> None:
         """Test finding an existing item"""
         items = [
             {"name": "apple", "price": 1.0},
@@ -124,7 +124,7 @@ class TestFindItem:
         result = find_item(items, "apple")
         assert result == {"name": "apple", "price": 1.0}
     
-    def test_find_item_not_exists(self):
+    def test_find_item_not_exists(self) -> None:
         """Test finding a non-existing item"""
         items = [
             {"name": "apple", "price": 1.0},
@@ -137,7 +137,7 @@ class TestFindItem:
         """Test finding in empty list"""
         assert find_item([], "apple") is None
     
-    def test_find_item_first_match(self):
+    def test_find_item_first_match(self) -> None:
         """Test that first matching item is returned"""
         items = [
             {"name": "apple", "price": 1.0},
@@ -146,7 +146,7 @@ class TestFindItem:
         result = find_item(items, "apple")
         assert result == {"name": "apple", "price": 1.0}
     
-    def test_find_item_case_sensitive(self):
+    def test_find_item_case_sensitive(self) -> None:
         """Test that search is case-sensitive"""
         items = [
             {"name": "apple", "price": 1.0},
@@ -174,7 +174,7 @@ class TestFindItem:
         result = find_item(items, "apple-pie")
         assert result == {"name": "apple-pie", "price": 5.0}
     
-    def test_find_item_missing_name_key(self):
+    def test_find_item_missing_name_key(self) -> None:
         """Test that KeyError is raised when name key is missing"""
         items = [
             {"price": 1.0}
@@ -182,7 +182,7 @@ class TestFindItem:
         with pytest.raises(KeyError):
             find_item(items, "apple")
     
-    def test_find_item_whitespace_name(self):
+    def test_find_item_whitespace_name(self) -> None:
         """Test finding item with whitespace in name"""
         items = [
             {"name": "apple pie", "price": 5.0},
@@ -191,7 +191,7 @@ class TestFindItem:
         result = find_item(items, "apple pie")
         assert result == {"name": "apple pie", "price": 5.0}
     
-    def test_find_item_unicode_name(self):
+    def test_find_item_unicode_name(self) -> None:
         """Test finding item with unicode characters"""
         items = [
             {"name": "café", "price": 3.0},
@@ -213,7 +213,7 @@ class TestFindItem:
 class TestFormatReceipt:
     """Test cases for format_receipt function"""
     
-    def test_format_receipt_basic(self):
+    def test_format_receipt_basic(self) -> None:
         """Test basic receipt formatting"""
         result = format_receipt(100.0, "$")
         assert result == "Total due: $100.00"
@@ -228,12 +228,12 @@ class TestFormatReceipt:
         result = format_receipt(0.0, "$")
         assert result == "Total due: $0.00"
     
-    def test_format_receipt_negative_total(self):
+    def test_format_receipt_negative_total(self) -> None:
         """Test receipt formatting with negative total"""
         result = format_receipt(-50.0, "$")
         assert result == "Total due: $-50.00"
     
-    def test_format_receipt_different_currency(self):
+    def test_format_receipt_different_currency(self) -> None:
         """Test receipt formatting with different currency symbols"""
         assert format_receipt(100.0, "€") == "Total due: €100.00"
         assert format_receipt(100.0, "£") == "Total due: £100.00"
@@ -249,7 +249,7 @@ class TestFormatReceipt:
         result = format_receipt(100.0, "")
         assert result == "Total due: 100.00"
     
-    def test_format_receipt_rounding(self):
+    def test_format_receipt_rounding(self) -> None:
         """Test that receipt properly rounds to 2 decimal places"""
         assert format_receipt(99.999, "$") == "Total due: $100.00"
         assert format_receipt(99.994, "$") == "Total due: $99.99"
@@ -265,7 +265,7 @@ class TestFormatReceipt:
         result = format_receipt(0.01, "$")
         assert result == "Total due: $0.01"
     
-    def test_format_receipt_integer_total(self):
+    def test_format_receipt_integer_total(self) -> None:
         """Test receipt formatting when total is integer"""
         result = format_receipt(100, "$")
         assert result == "Total due: $100.00"
@@ -280,7 +280,7 @@ class TestFormatReceipt:
 class TestIntegration:
     """Integration tests combining multiple functions"""
     
-    def test_full_workflow(self):
+    def test_full_workflow(self) -> None:
         """Test a complete workflow: find, process, format"""
         items = [
             {"name": "apple", "price": 1.50, "quantity": 3, "in_stock": True},
@@ -301,7 +301,7 @@ class TestIntegration:
         receipt = format_receipt(total, "$")
         assert receipt == "Total due: $8.50"
     
-    def test_empty_workflow(self):
+    def test_empty_workflow(self) -> None:
         """Test workflow with empty inventory"""
         items = []
         

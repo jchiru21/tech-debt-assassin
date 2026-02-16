@@ -54,9 +54,7 @@ class TestCase:
 
 # ── Type-hint generation ─────────────────────────────────────────────
 
-def infer_type_hints(
-    func: FunctionInfo, project_context: str | None = None
-) -> dict[str, str] | None:
+def infer_type_hints(func: FunctionInfo, project_context: str | None) -> dict[str, str] | None:
     """Call the LLM to infer precise type hints for *func*.
 
     When *project_context* is provided, the LLM uses cross-file awareness
@@ -212,7 +210,7 @@ def generate_type_hint_patch(func: FunctionInfo, hints: dict[str, str]) -> TypeH
     )
 
 
-def apply_patches(patches: list[TypeHintPatch], dry_run: bool = True) -> list[str]:
+def apply_patches(patches: list[TypeHintPatch], dry_run: bool) -> list[str]:
     """Apply patches and return the modified source code strings.
 
     Returns the list of patched source code strings.

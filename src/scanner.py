@@ -20,15 +20,28 @@ _KNOWN_TYPE_NAMES = set(dir(_builtins)) | {
 
 
 def _is_valid_annotation(node: ast.expr) -> bool:
-    """Heuristically check whether an annotation uses known type names.
+    """Check whether an annotation node is present and non-trivial.
 
-    Walks the annotation AST and verifies every bare name (``ast.Name``)
-    appears in ``_KNOWN_TYPE_NAMES``.  This catches typos like ``foat``
-    or ``lst`` that are syntactically valid but not real types.
+    Accepts any syntactically valid annotation — builtins, typing constructs,
+    and user-defined types (``Path``, ``FunctionInfo``, ``pd.DataFrame``, etc.).
+
+    Only rejects single-name annotations that look like common typos of
+    builtin types (e.g. ``foat``, ``stirng``, ``boool``).
     """
-    for child in ast.walk(node):
-        if isinstance(child, ast.Name) and child.id not in _KNOWN_TYPE_NAMES:
-            return False
+    # Common typo patterns: single lowercase name that's close to a builtin
+    # but not an actual builtin or known type.  Multi-part annotations like
+    # ``list[Path]`` or ``dict[str, Any]`` are always accepted because
+    # subscripts imply intentional typing.
+    if isinstance(node, ast.Name):
+        name = node.id
+        # Accept anything that starts with an uppercase letter (class names,
+        # typing constructs) or is a known builtin/typing name.
+        if name[0].isupper() or name in _KNOWN_TYPE_NAMES:
+            return True
+        # Reject bare lowercase names that aren't known — likely typos
+        return False
+    # Subscripts (list[X]), attributes (mod.Type), constants ("forward refs"),
+    # BinOps (X | Y), etc. are all valid annotations.
     return True
 
 
@@ -70,7 +83,7 @@ class ScanResult:
 _DEFAULT_EXCLUDE_DIRS = {"venv", ".venv", "node_modules", "__pycache__", ".git"}
 
 
-def get_python_files(path: str, excluded_dirs: list[str] | None = None) -> list[Path]:
+def get_python_files(path: str, excluded_dirs: list[str] | None) -> list[Path]:
     """Resolve *path* to a list of ``.py`` files.
 
     - If *path* is a file, return ``[Path(path)]``.
@@ -100,7 +113,7 @@ def get_python_files(path: str, excluded_dirs: list[str] | None = None) -> list[
     return files
 
 
-def collect_python_files(root: Path, exclude_dirs: set[str] | None = None) -> list[Path]:
+def collect_python_files(root: Path, exclude_dirs: set[str] | None) -> list[Path]:
     """Recursively collect all .py files under *root*, skipping *exclude_dirs*."""
     root = root.resolve()
     if root.is_file():
@@ -260,11 +273,7 @@ def build_project_context(root_path: str, exclude_dirs: set[str] | None = None) 
     return context
 
 
-def scan_codebase(
-    root: Path,
-    exclude_dirs: set[str] | None = None,
-    force: bool = False,
-) -> ScanResult:
+def scan_codebase(root: Path, exclude_dirs: set[str] | None, force: bool) -> ScanResult:
     """Orchestrate a full scan: collect files, parse each, return aggregated results.
 
     When *force* is True every function is reported, even those that already

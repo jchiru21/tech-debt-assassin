@@ -1,5 +1,5 @@
 # messy_code.py
-def calculate_total(price, tax):
+def calculate_total(price: float, tax: float) -> float:
     # This function has NO type hints (Bad!)
     return price + (price * tax)
 
