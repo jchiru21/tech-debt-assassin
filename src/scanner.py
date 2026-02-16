@@ -83,7 +83,7 @@ class ScanResult:
 _DEFAULT_EXCLUDE_DIRS = {"venv", ".venv", "node_modules", "__pycache__", ".git"}
 
 
-def get_python_files(path: str, excluded_dirs: list[str] | None) -> list[Path]:
+def get_python_files(path: str, excluded_dirs: list[str] | None = None) -> list[Path]:
     """Resolve *path* to a list of ``.py`` files.
 
     - If *path* is a file, return ``[Path(path)]``.
@@ -113,7 +113,7 @@ def get_python_files(path: str, excluded_dirs: list[str] | None) -> list[Path]:
     return files
 
 
-def collect_python_files(root: Path, exclude_dirs: set[str] | None) -> list[Path]:
+def collect_python_files(root: Path, exclude_dirs: set[str] | None = None) -> list[Path]:
     """Recursively collect all .py files under *root*, skipping *exclude_dirs*."""
     root = root.resolve()
     if root.is_file():
@@ -273,7 +273,7 @@ def build_project_context(root_path: str, exclude_dirs: set[str] | None = None) 
     return context
 
 
-def scan_codebase(root: Path, exclude_dirs: set[str] | None, force: bool) -> ScanResult:
+def scan_codebase(root: Path, exclude_dirs: set[str] | None = None, force: bool = False) -> ScanResult:
     """Orchestrate a full scan: collect files, parse each, return aggregated results.
 
     When *force* is True every function is reported, even those that already
